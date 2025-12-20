@@ -1,10 +1,13 @@
 import bcrypt from "bcrypt";
-import User from "../config/models/UserModel.js";
+import User from "../models/UserModel.js";
 
 // User sign up
 export const SignUpUser = async (req, res) => {
   try {
     const { username, email, password } = req.body;
+
+    console.log("BODY:", req.body);
+    console.log("FILE:", req.file);
 
     if (!email || !password) {
       return res.json({
@@ -13,17 +16,22 @@ export const SignUpUser = async (req, res) => {
       });
     }
 
-    const hashedPassword = bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // console.log(hashedPassword);
+    // console.log(req.file);
 
     const newUser = await User.create({
       username,
       email,
       password: hashedPassword,
+      profilePic: req.file ? req.file.filename : null,
     });
 
     res.json({
       status: true,
       message: "User created successfully.",
+      user: newUser,
     });
   } catch (error) {
     res.json({
