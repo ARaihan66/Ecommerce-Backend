@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import User from "../models/UserModel.js";
+import jwt from "jsonwebtoken";
 
 // User sign up
 export const SignUpUser = async (req, res) => {
@@ -9,10 +10,24 @@ export const SignUpUser = async (req, res) => {
     console.log("BODY:", req.body);
     console.log("FILE:", req.file);
 
-    if (!email || !password) {
+    const existUser = await User.findOne({ email });
+
+    if (existUser) {
       return res.json({
-        status: false,
-        message: "Email and Password are required",
+        success: true,
+        message: "User already exist.",
+      });
+    }
+
+    if (!email) {
+      return res.json({
+        message: "Email is required.",
+      });
+    }
+
+    if (!password) {
+      return res.json({
+        message: "Password is required.",
       });
     }
 
@@ -45,12 +60,14 @@ export const SignInUser = async (req, res) => {
 
     if (!email) {
       return res.json({
+        error: true,
         message: "Email is required.",
       });
     }
 
     if (!password) {
       return res.json({
+        error: true,
         message: "Password is required.",
       });
     }
@@ -59,7 +76,7 @@ export const SignInUser = async (req, res) => {
 
     if (!existUser) {
       return res.json({
-        success: true,
+        error: true,
         message: "User not exist.",
       });
     }
@@ -68,9 +85,23 @@ export const SignInUser = async (req, res) => {
 
     if (!isMatch) {
       return res.json({
+        error: true,
         message: "Password doesn't match.",
       });
     }
+
+    const token = jwt.sign({ id: existUser._id }, process.env.JWT_TOKEN, {
+      expiresIn: "7d",
+    });
+
+    console.log(token);
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV == !"production",
+      samesite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
     res.json({
       success: true,
@@ -78,9 +109,10 @@ export const SignInUser = async (req, res) => {
       user: existUser,
     });
   } catch (error) {
+    console.log(error.message);
     res.json({
       error: true,
-      message: error.message,
+      message: "Server error",
     });
   }
 };
