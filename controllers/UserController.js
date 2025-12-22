@@ -76,10 +76,10 @@ export const SignInUser = async (req, res) => {
 
     const existUser = await User.findOne({ email });
 
-    if (existUser) {
+    if (!existUser) {
       return res.status(409).json({
         success: false,
-        message: "User not exist.",
+        message: "Email or password incorrect.",
       });
     }
 
@@ -96,8 +96,6 @@ export const SignInUser = async (req, res) => {
       expiresIn: "7d",
     });
 
-    console.log(token);
-
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV == !"production",
@@ -108,7 +106,58 @@ export const SignInUser = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Log in successful.",
-      user: existUser,
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong. Please try again later.",
+    });
+  }
+};
+
+// Get user details
+export const userDetails = async (req, res) => {
+  try {
+    const id = req.userId;
+    console.log(id);
+
+    const existUser = await User.findById(id).select("-password");
+
+    console.log(existUser);
+
+    if (!existUser) {
+      return res.status(409).json({
+        success: false,
+        message: "User not exist.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: existUser,
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong. Please try again later.",
+    });
+  }
+};
+
+// User sign out
+export const signOutUser = async (req, res) => {
+  try {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      samesite: "lax",
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
     });
   } catch (error) {
     console.log(error.message);

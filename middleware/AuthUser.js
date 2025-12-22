@@ -5,7 +5,7 @@ export const authUser = (req, res, next) => {
     const { token } = req.cookies;
 
     if (!token) {
-      return res.status.json({
+      return res.status(400).json({
         error: true,
         message: "Please Login First",
       });
