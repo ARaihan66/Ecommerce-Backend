@@ -167,3 +167,22 @@ export const signOutUser = async (req, res) => {
     });
   }
 };
+
+// Get all users
+export const getAllUsers = async (req, res) => {
+  try {
+    const allUsers = await User.find().select("-password");
+
+    res.status(200).json({
+      success: true,
+      message: "Retrieve all users",
+      users: allUsers,
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong. Please try again later.",
+    });
+  }
+};
