@@ -10,24 +10,26 @@ export const SignUpUser = async (req, res) => {
     console.log("BODY:", req.body);
     console.log("FILE:", req.file);
 
-    const existUser = await User.findOne({ email });
-
-    if (existUser) {
-      return res.json({
-        success: true,
-        message: "User already exist.",
-      });
-    }
-
     if (!email) {
-      return res.json({
+      return res.status(400).json({
+        success: false,
         message: "Email is required.",
       });
     }
 
     if (!password) {
-      return res.json({
+      return res.status(400).json({
+        success: false,
         message: "Password is required.",
+      });
+    }
+
+    const existUser = await User.findOne({ email });
+
+    if (existUser) {
+      return res.status(409).json({
+        success: false,
+        message: "User already exist.",
       });
     }
 
@@ -40,15 +42,15 @@ export const SignUpUser = async (req, res) => {
       profilePic: req.file ? req.file.filename : null,
     });
 
-    res.json({
+    res.status(201).json({
       success: true,
       message: "User created successfully.",
       user: newUser,
     });
   } catch (error) {
-    res.json({
-      error: true,
-      message: error.message,
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong. Please try again later.",
     });
   }
 };
@@ -59,24 +61,24 @@ export const SignInUser = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email) {
-      return res.json({
-        error: true,
+      return res.status(400).json({
+        success: false,
         message: "Email is required.",
       });
     }
 
     if (!password) {
-      return res.json({
-        error: true,
+      return res.status(400).json({
+        success: false,
         message: "Password is required.",
       });
     }
 
     const existUser = await User.findOne({ email });
 
-    if (!existUser) {
-      return res.json({
-        error: true,
+    if (existUser) {
+      return res.status(409).json({
+        success: false,
         message: "User not exist.",
       });
     }
@@ -84,8 +86,8 @@ export const SignInUser = async (req, res) => {
     const isMatch = await bcrypt.compare(password, existUser.password);
 
     if (!isMatch) {
-      return res.json({
-        error: true,
+      return res.status(401).json({
+        success: false,
         message: "Password doesn't match.",
       });
     }
@@ -103,16 +105,16 @@ export const SignInUser = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.json({
+    res.status(200).json({
       success: true,
       message: "Log in successful.",
       user: existUser,
     });
   } catch (error) {
     console.log(error.message);
-    res.json({
-      error: true,
-      message: "Server error",
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong. Please try again later.",
     });
   }
 };
