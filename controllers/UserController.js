@@ -186,3 +186,28 @@ export const getAllUsers = async (req, res) => {
     });
   }
 };
+
+// Update user role
+export const updateUserRole = async (req, res) => {
+  try {
+    const { email, userRole } = req.body;
+
+    const existUser = await User.findOne({ email });
+
+    const updatedUser = await User.findByIdAndUpdate(existUser._id, {
+      role: userRole,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "User role updated successfully.",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong. Please try again later.",
+    });
+  }
+};
