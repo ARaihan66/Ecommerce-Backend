@@ -4,6 +4,7 @@ import connectDB from "./config/db.js";
 import userRouter from "./routers/UserRouter.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import productRouter from "./routers/ProductRouter.js";
 
 dotenv.config();
 
@@ -22,6 +23,8 @@ app.use(
 app.use(cookieParser());
 
 app.use("/api/user", userRouter);
+app.use("/api/product", productRouter);
+
 app.use((req, res) => {
   res.status(404).json({
     success: false,
