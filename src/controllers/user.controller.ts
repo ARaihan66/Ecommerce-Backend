@@ -57,7 +57,7 @@ export const SignUpUser = async (req: Request, res: Response) => {
 };
 
 // User sign in
-export const SignInUser = async (req, res) => {
+export const SignInUser = async (req: Requset, res: Response) => {
   try {
     const { email, password } = req.body;
 
@@ -108,7 +108,7 @@ export const SignInUser = async (req, res) => {
       success: true,
       message: "Log in successful.",
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.log(error.message);
     res.status(500).json({
       success: false,
@@ -118,7 +118,7 @@ export const SignInUser = async (req, res) => {
 };
 
 // Get user details
-export const userDetails = async (req, res) => {
+export const userDetails = async (req: Request, res: Response) => {
   try {
     const id = req.userId;
     console.log(id);
@@ -138,8 +138,8 @@ export const userDetails = async (req, res) => {
       success: true,
       data: existUser,
     });
-  } catch (error) {
-    console.log(error.message);
+  } catch (error: unknown) {
+    console.log(error);
     res.status(500).json({
       success: false,
       message: "Something went wrong. Please try again later.",
@@ -148,7 +148,7 @@ export const userDetails = async (req, res) => {
 };
 
 // User sign out
-export const signOutUser = async (req, res) => {
+export const signOutUser = async (req: Request, res: Response) => {
   try {
     res.clearCookie("token", {
       httpOnly: true,
@@ -160,8 +160,8 @@ export const signOutUser = async (req, res) => {
       success: true,
       message: "Logged out successfully",
     });
-  } catch (error) {
-    console.log(error.message);
+  } catch (error: unknown) {
+    console.log(error);
     res.status(500).json({
       success: false,
       message: "Something went wrong. Please try again later.",
@@ -170,7 +170,7 @@ export const signOutUser = async (req, res) => {
 };
 
 // Get all users
-export const getAllUsers = async (req, res) => {
+export const getAllUsers = async (req: Request, res: Response) => {
   try {
     const allUsers = await User.find().select("-password");
 
@@ -179,8 +179,8 @@ export const getAllUsers = async (req, res) => {
       message: "Retrieve all users",
       users: allUsers,
     });
-  } catch (error) {
-    console.log(error.message);
+  } catch (error: unknown) {
+    console.log(error);
     res.status(500).json({
       success: false,
       message: "Something went wrong. Please try again later.",
@@ -189,7 +189,7 @@ export const getAllUsers = async (req, res) => {
 };
 
 // Update user role
-export const updateUserRole = async (req, res) => {
+export const updateUserRole = async (req: Request, res: Response) => {
   try {
     const { email, userRole } = req.body;
 
@@ -204,8 +204,8 @@ export const updateUserRole = async (req, res) => {
       message: "User role updated successfully.",
       user: updatedUser,
     });
-  } catch (error) {
-    console.log(error.message);
+  } catch (error: unknown) {
+    console.log(error);
     res.status(500).json({
       success: false,
       message: "Something went wrong. Please try again later.",
