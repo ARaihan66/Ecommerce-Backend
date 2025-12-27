@@ -1,6 +1,12 @@
 import { Request, Response } from "express";
 import Product from "../models/product.model";
 import { Multer } from "multer";
+import cloudinary from "../utils/cloudinary";
+
+interface IProductImage {
+  fileName: string;
+  path: string;
+}
 
 // Create product
 export const createProduct = async (req: Request, res: Response) => {
@@ -54,7 +60,19 @@ export const createProduct = async (req: Request, res: Response) => {
       });
     }
 
-    console.log(req.files);
+    let productImageData: IProductImage[] = [];
+
+    if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+      const uploadImage = req.files?.map(async (file) => {
+        const result = await cloudinary.uploader.upload(file.path);
+        return {
+          fileName: file.filename,
+          path: result.secure_url,
+        };
+      });
+
+      productImageData = await Promise.all(uploadImage);
+    }
 
     const product = await Product.create({
       productName,
@@ -63,19 +81,15 @@ export const createProduct = async (req: Request, res: Response) => {
       description,
       price: Number(price),
       sellingPrice: Number(sellingPrice),
-      productImage: files.map((file) => {
-        return {
-          fileName: file.filename,
-          path: file.path,
-        };
-      }),
+      productImage: productImageData,
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Product created successfully.",
+      product: product,
     });
-  } catch (error: unknown) {
+  } catch (error) {
     console.log(error);
     res.status(500).json({
       success: false,

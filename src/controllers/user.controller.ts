@@ -2,9 +2,15 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import User from "../models/user.model";
 import jwt from "jsonwebtoken";
+import cloudinary from "../utils/cloudinary";
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
+}
+
+interface IProfilePic {
+  fileName: string;
+  path: string;
 }
 
 // User sign up
@@ -38,26 +44,32 @@ export const SignUpUser = async (req: Request, res: Response) => {
       });
     }
 
+    let profilePicData: IProfilePic | undefined = undefined;
+
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path);
+      profilePicData = {
+        fileName: req.file.filename,
+        path: result.secure_url,
+      };
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await User.create({
       username,
       email,
       password: hashedPassword,
-      profilePic: req.file
-        ? {
-            fileName: req.file.filename,
-            path: req.file.path,
-          }
-        : undefined,
+      profilePic: profilePicData,
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "User created successfully.",
       user: newUser,
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({
       success: false,
       message: "Something went wrong. Please try again later.",
@@ -117,7 +129,7 @@ export const SignInUser = async (req: Request, res: Response) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Log in successful.",
     });
@@ -147,7 +159,7 @@ export const userDetails = async (req: AuthenticatedRequest, res: Response) => {
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: existUser,
     });
@@ -169,7 +181,7 @@ export const signOutUser = async (req: Request, res: Response) => {
       sameSite: "lax",
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Logged out successfully",
     });
@@ -187,7 +199,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
   try {
     const allUsers = await User.find().select("-password");
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Retrieve all users",
       users: allUsers,
@@ -219,7 +231,7 @@ export const updateUserRole = async (req: Request, res: Response) => {
       role: userRole,
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "User role updated successfully.",
       user: updatedUser,
