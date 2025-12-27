@@ -1,16 +1,21 @@
+import { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import User from "../models/UserModel.js";
+import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 
+interface AuthenticatedRequest extends Request {
+  userId?: string;
+}
+
 // User sign up
-export const SignUpUser = async (req, res) => {
+export const SignUpUser = async (req: Request, res: Response) => {
   try {
     const { username, email, password } = req.body;
 
     console.log("BODY:", req.body);
     console.log("FILE:", req.file);
 
-    if (!email) {
+    if (!email.trim()) {
       return res.status(400).json({
         success: false,
         message: "Email is required.",
@@ -39,7 +44,12 @@ export const SignUpUser = async (req, res) => {
       username,
       email,
       password: hashedPassword,
-      profilePic: req.file ? req.file.filename : null,
+      profilePic: req.file
+        ? {
+            fileName: req.file.filename,
+            path: req.file.path,
+          }
+        : undefined,
     });
 
     res.status(201).json({
@@ -56,7 +66,7 @@ export const SignUpUser = async (req, res) => {
 };
 
 // User sign in
-export const SignInUser = async (req, res) => {
+export const SignInUser = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
@@ -92,14 +102,18 @@ export const SignInUser = async (req, res) => {
       });
     }
 
-    const token = jwt.sign({ id: existUser._id }, process.env.JWT_TOKEN, {
-      expiresIn: "7d",
-    });
+    const token = jwt.sign(
+      { id: existUser._id },
+      process.env.JWT_TOKEN as string,
+      {
+        expiresIn: "7d",
+      }
+    );
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV == !"production",
-      samesite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -108,7 +122,7 @@ export const SignInUser = async (req, res) => {
       message: "Log in successful.",
     });
   } catch (error) {
-    console.log(error.message);
+    console.log(error);
     res.status(500).json({
       success: false,
       message: "Something went wrong. Please try again later.",
@@ -117,7 +131,7 @@ export const SignInUser = async (req, res) => {
 };
 
 // Get user details
-export const userDetails = async (req, res) => {
+export const userDetails = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const id = req.userId;
     console.log(id);
@@ -138,7 +152,7 @@ export const userDetails = async (req, res) => {
       data: existUser,
     });
   } catch (error) {
-    console.log(error.message);
+    console.log(error);
     res.status(500).json({
       success: false,
       message: "Something went wrong. Please try again later.",
@@ -147,12 +161,12 @@ export const userDetails = async (req, res) => {
 };
 
 // User sign out
-export const signOutUser = async (req, res) => {
+export const signOutUser = async (req: Request, res: Response) => {
   try {
     res.clearCookie("token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      samesite: "lax",
+      sameSite: "lax",
     });
 
     res.status(200).json({
@@ -160,7 +174,7 @@ export const signOutUser = async (req, res) => {
       message: "Logged out successfully",
     });
   } catch (error) {
-    console.log(error.message);
+    console.log(error);
     res.status(500).json({
       success: false,
       message: "Something went wrong. Please try again later.",
@@ -169,7 +183,7 @@ export const signOutUser = async (req, res) => {
 };
 
 // Get all users
-export const getAllUsers = async (req, res) => {
+export const getAllUsers = async (req: Request, res: Response) => {
   try {
     const allUsers = await User.find().select("-password");
 
@@ -179,7 +193,7 @@ export const getAllUsers = async (req, res) => {
       users: allUsers,
     });
   } catch (error) {
-    console.log(error.message);
+    console.log(error);
     res.status(500).json({
       success: false,
       message: "Something went wrong. Please try again later.",
@@ -188,11 +202,18 @@ export const getAllUsers = async (req, res) => {
 };
 
 // Update user role
-export const updateUserRole = async (req, res) => {
+export const updateUserRole = async (req: Request, res: Response) => {
   try {
     const { email, userRole } = req.body;
 
     const existUser = await User.findOne({ email });
+
+    if (!existUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
 
     const updatedUser = await User.findByIdAndUpdate(existUser._id, {
       role: userRole,
@@ -204,7 +225,7 @@ export const updateUserRole = async (req, res) => {
       user: updatedUser,
     });
   } catch (error) {
-    console.log(error.message);
+    console.log(error);
     res.status(500).json({
       success: false,
       message: "Something went wrong. Please try again later.",

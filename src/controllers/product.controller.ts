@@ -1,7 +1,9 @@
-import Product from "../models/ProductModel.js";
+import { Request, Response } from "express";
+import Product from "../models/product.model.js";
+import { Multer } from "multer";
 
 // Create product
-export const createProduct = async (req, res) => {
+export const createProduct = async (req: Request, res: Response) => {
   try {
     const {
       productName,
@@ -12,38 +14,40 @@ export const createProduct = async (req, res) => {
       sellingPrice,
     } = req.body;
 
-    if (!productName) {
+    if (!productName?.trim()) {
       return res.status(400).json({
         success: false,
         message: "Product name is required.",
       });
     }
-    if (!brandName) {
+    if (!brandName?.trim()) {
       return res.status(400).json({
         success: false,
         message: "Brand name is required.",
       });
     }
-    if (!category) {
+    if (!category?.trim()) {
       return res.status(400).json({
         success: false,
         message: "Category name is required.",
       });
     }
-    if (!price) {
+    if (!price?.trim()) {
       return res.status(400).json({
         success: false,
         message: "Price is required.",
       });
     }
-    if (!sellingPrice) {
+    if (!sellingPrice?.trim()) {
       return res.status(400).json({
         success: false,
         message: "Selling Price is required.",
       });
     }
 
-    if (!req.files || req.files.length === 0) {
+    const files = req.files as Express.Multer.File[];
+
+    if (!files || files.length === 0) {
       return res.status(400).json({
         success: false,
         message: "At least one product image is required.",
@@ -59,7 +63,7 @@ export const createProduct = async (req, res) => {
       description,
       price: Number(price),
       sellingPrice: Number(sellingPrice),
-      productImage: req.files.map((file) => {
+      productImage: files.map((file) => {
         return {
           fileName: file.filename,
           path: file.path,
@@ -71,9 +75,9 @@ export const createProduct = async (req, res) => {
       success: true,
       message: "Product created successfully.",
     });
-  } catch (error) {
-    console.log(error.message);
-    res.status(400).json({
+  } catch (error: unknown) {
+    console.log(error);
+    res.status(500).json({
       success: false,
       message: "Something went wrong. Please try again later.",
     });
