@@ -3,6 +3,10 @@ import bcrypt from "bcrypt";
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 
+interface AuthenticatedRequest extends Request {
+  userId?: string;
+}
+
 // User sign up
 export const SignUpUser = async (req: Request, res: Response) => {
   try {
@@ -11,7 +15,7 @@ export const SignUpUser = async (req: Request, res: Response) => {
     console.log("BODY:", req.body);
     console.log("FILE:", req.file);
 
-    if (!email) {
+    if (!email.trim()) {
       return res.status(400).json({
         success: false,
         message: "Email is required.",
@@ -40,7 +44,12 @@ export const SignUpUser = async (req: Request, res: Response) => {
       username,
       email,
       password: hashedPassword,
-      profilePic: req.file ? req.file.filename : null,
+      profilePic: req.file
+        ? {
+            fileName: req.file.filename,
+            path: req.file.path,
+          }
+        : undefined,
     });
 
     res.status(201).json({
@@ -57,7 +66,7 @@ export const SignUpUser = async (req: Request, res: Response) => {
 };
 
 // User sign in
-export const SignInUser = async (req: Requset, res: Response) => {
+export const SignInUser = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
@@ -93,14 +102,18 @@ export const SignInUser = async (req: Requset, res: Response) => {
       });
     }
 
-    const token = jwt.sign({ id: existUser._id }, process.env.JWT_TOKEN, {
-      expiresIn: "7d",
-    });
+    const token = jwt.sign(
+      { id: existUser._id },
+      process.env.JWT_TOKEN as string,
+      {
+        expiresIn: "7d",
+      }
+    );
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV == !"production",
-      samesite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -108,8 +121,8 @@ export const SignInUser = async (req: Requset, res: Response) => {
       success: true,
       message: "Log in successful.",
     });
-  } catch (error: unknown) {
-    console.log(error.message);
+  } catch (error) {
+    console.log(error);
     res.status(500).json({
       success: false,
       message: "Something went wrong. Please try again later.",
@@ -118,7 +131,7 @@ export const SignInUser = async (req: Requset, res: Response) => {
 };
 
 // Get user details
-export const userDetails = async (req: Request, res: Response) => {
+export const userDetails = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const id = req.userId;
     console.log(id);
@@ -138,7 +151,7 @@ export const userDetails = async (req: Request, res: Response) => {
       success: true,
       data: existUser,
     });
-  } catch (error: unknown) {
+  } catch (error) {
     console.log(error);
     res.status(500).json({
       success: false,
@@ -153,14 +166,14 @@ export const signOutUser = async (req: Request, res: Response) => {
     res.clearCookie("token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      samesite: "lax",
+      sameSite: "lax",
     });
 
     res.status(200).json({
       success: true,
       message: "Logged out successfully",
     });
-  } catch (error: unknown) {
+  } catch (error) {
     console.log(error);
     res.status(500).json({
       success: false,
@@ -179,7 +192,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
       message: "Retrieve all users",
       users: allUsers,
     });
-  } catch (error: unknown) {
+  } catch (error) {
     console.log(error);
     res.status(500).json({
       success: false,
@@ -195,6 +208,13 @@ export const updateUserRole = async (req: Request, res: Response) => {
 
     const existUser = await User.findOne({ email });
 
+    if (!existUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
     const updatedUser = await User.findByIdAndUpdate(existUser._id, {
       role: userRole,
     });
@@ -204,7 +224,7 @@ export const updateUserRole = async (req: Request, res: Response) => {
       message: "User role updated successfully.",
       user: updatedUser,
     });
-  } catch (error: unknown) {
+  } catch (error) {
     console.log(error);
     res.status(500).json({
       success: false,

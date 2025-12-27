@@ -4,7 +4,10 @@ export interface IUser extends Document {
   username?: string;
   email: string;
   password: string;
-  profilePic?: String;
+  profilePic?: {
+    fileName: string;
+    path: string;
+  };
   role: "USER" | "ADMIN";
   createdAt: Date;
   updatedAt: Date;
@@ -21,7 +24,10 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
       type: String,
       required: true,
     },
-    profilePic: String,
+    profilePic: {
+      fileName: { type: String },
+      path: { type: String },
+    },
     role: {
       type: String,
       enum: ["USER", "ADMIN"],

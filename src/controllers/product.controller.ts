@@ -77,7 +77,7 @@ export const createProduct = async (req: Request, res: Response) => {
     });
   } catch (error: unknown) {
     console.log(error);
-    res.status(400).json({
+    res.status(500).json({
       success: false,
       message: "Something went wrong. Please try again later.",
     });

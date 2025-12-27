@@ -6,7 +6,7 @@ import {
   SignUpUser,
   updateUserRole,
   userDetails,
-} from "../controllers/UserController.js";
+} from "../controllers/user.controller.ts";
 import upload from "../middleware/upload.js";
 import authUser from "../middleware/AuthUser.js";
 
