@@ -1,15 +1,14 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import dotenv from "dotenv";
-import connectDB from "./config/db.js";
-import userRouter from "./routers/UserRouter.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+
+import userRouter from "./routers/user.router";
+import productRouter from "./routers/product.router";
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 8000;
-connectDB();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -22,13 +21,13 @@ app.use(
 app.use(cookieParser());
 
 app.use("/api/user", userRouter);
-app.use((req, res) => {
+app.use("/api/product", productRouter);
+
+app.use((req: Request, res: Response) => {
   res.status(404).json({
     success: false,
     message: "Resource not found.",
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on the port ${PORT}`);
-});
+export default app;
