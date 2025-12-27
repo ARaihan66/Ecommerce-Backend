@@ -1,7 +1,7 @@
 import express from "express";
-import { createProduct } from "../controllers/ProductController.js";
-import authUser from "../middleware/AuthUser.js";
-import upload from "../middleware/upload.js";
+import { createProduct } from "../controllers/product.controller";
+import authUser from "../middleware/AuthUser";
+import upload from "../middleware/upload";
 
 const productRouter = express.Router();
 

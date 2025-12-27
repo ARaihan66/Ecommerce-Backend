@@ -6,9 +6,9 @@ import {
   SignUpUser,
   updateUserRole,
   userDetails,
-} from "../controllers/user.controller.ts";
-import upload from "../middleware/upload.js";
-import authUser from "../middleware/AuthUser.js";
+} from "../controllers/user.controller";
+import upload from "../middleware/upload";
+import authUser from "../middleware/AuthUser";
 
 const userRouter = express.Router();
 
