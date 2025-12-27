@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import Product from "../models/product.model.js";
+import Product from "../models/product.model";
 import { Multer } from "multer";
 
 // Create product

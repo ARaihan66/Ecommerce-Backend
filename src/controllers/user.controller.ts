@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import User from "../models/user.model.js";
+import User from "../models/user.model";
 import jwt from "jsonwebtoken";
 
 interface AuthenticatedRequest extends Request {
