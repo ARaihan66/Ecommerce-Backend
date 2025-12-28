@@ -1,21 +1,11 @@
 import { Request, Response } from "express";
 import Product from "../models/product.model";
-import { Multer } from "multer";
 import cloudinary from "../utils/cloudinary";
 import { uploadProductPermission } from "../helper/permission";
-import console from "node:console";
 
 interface IProductImage {
   fileName: string;
   path: string;
-}
-
-declare global {
-  namespace Express {
-    interface Request {
-      userId?: string;
-    }
-  }
 }
 
 // Create product
@@ -30,9 +20,16 @@ export const createProduct = async (req: Request, res: Response) => {
       sellingPrice,
     } = req.body;
 
-    const id: string = req.userId;
+    const Id = req.userId;
 
-    if (!uploadProductPermission(id)) {
+    if (!Id) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized user",
+      });
+    }
+
+    if (!uploadProductPermission(Id)) {
       return res.status(400).json({
         success: false,
         message: "You are not allow to upload image.",

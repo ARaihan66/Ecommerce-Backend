@@ -1,15 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
-interface AuthenticatedRequest extends Request {
-  userId?: string;
-}
-
-export const authUser = (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-) => {
+export const authUser = (req: Request, res: Response, next: NextFunction) => {
   try {
     const { token } = req.cookies;
 
