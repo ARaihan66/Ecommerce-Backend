@@ -113,3 +113,22 @@ export const createProduct = async (req: Request, res: Response) => {
     });
   }
 };
+
+// Get all product
+export const GetAllProduct = async (req: Request, res: Response) => {
+  try {
+    const products = await Product.find().sort("-createdAt");
+
+    return res.status(200).json({
+      success: true,
+      message: "Get all products data",
+      products: products,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong. Please try again later.",
+    });
+  }
+};
